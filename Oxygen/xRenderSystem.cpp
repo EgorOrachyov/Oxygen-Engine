@@ -28,6 +28,8 @@ xRenderSystem::xRenderSystem(GLFWwindow * window, xVirtualCamera * camera)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     glHint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_NICEST);
 
+    glShadeModel(GL_SMOOTH);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 xRenderSystem::~xRenderSystem()
@@ -46,7 +48,7 @@ void xRenderSystem::UpdateSettings(xVirtualCamera * camera)
 
 void xRenderSystem::ApplySettings()
 {
-    glShadeModel(GL_SMOOTH);
+
 }
 
 void xRenderSystem::PrepareRendering3D()
@@ -56,11 +58,16 @@ void xRenderSystem::PrepareRendering3D()
 
 void xRenderSystem::PrepareRendering2D()
 {
-
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0 , m_width, m_height, 0.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 void xRenderSystem::FinishRendering3D()
 {
+
 }
 
 void xRenderSystem::FinishRendering2D()
@@ -70,11 +77,12 @@ void xRenderSystem::FinishRendering2D()
 
 void xRenderSystem::Rendering3D()
 {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+
 /*
+    glEnable(GL_DEPTH_TEST);
+
     glColor3f(0.99, 0.99, 0.99);
     static float angle1 = 0.0;
     static float angle2 = 0.0;
@@ -132,7 +140,7 @@ void xRenderSystem::Rendering3D()
     m_lights->Iterate(true);
     while (m_lights->Iterate()) {
         xLight * light = m_lights->GetCurrent();
-        if (light->IsActive()) {
+        if (light->IsActive() && light->IsGlareEffected()) {
             m_camera->RenderGlareEffect(light);
         }
     }

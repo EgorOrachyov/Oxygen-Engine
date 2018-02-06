@@ -21,8 +21,6 @@
 #ifndef OXYGEN_XSTATEMANAGER_H
 #define OXYGEN_XSTATEMANAGER_H
 
-#include "xEngine.h"
-
 // ----------------------------------------------------------------------
 // State Manager Class
 // ----------------------------------------------------------------------

@@ -23,6 +23,8 @@ class xVirtualCamera : public xVirtualObject
 {
 public:
 
+    friend class xEngine;
+
     // ----------------------------------------------------------------------
     // Creates camera from frustum view angle, front and back culling planes
     // ----------------------------------------------------------------------

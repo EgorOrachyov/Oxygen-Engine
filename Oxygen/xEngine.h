@@ -59,6 +59,8 @@
 #include "xSound.h"
 #include "xSoundSource.h"
 #include "xSoundSystem.h"
+#include "xFont.h"
+#include "xDebugDrawManager.h"
 #include "xLight.h"
 #include "xVirtualCamera.h"
 #include "xFreeCamera.h"
@@ -78,6 +80,7 @@ struct xEngineSetup
     char name[STRING_SIZE];         // Application name
     int size_x, size_y;             // Window size
     bool full_screen;               // Is it in full screen mode
+    unsigned int debug_font;        // Font size for debug drawing manager
 
     void (* StateSetup)();          //
     xVirtualCamera * camera;        //
@@ -95,6 +98,7 @@ struct xEngineSetup
         full_screen = false;
         StateSetup = NULL;
         strcpy(name, "Application");
+        debug_font = 25;
     }
 
     // ----------------------------------------------------------------------
@@ -150,6 +154,15 @@ struct xEngineSetup
             exit(1);
         }
     }
+
+    // ----------------------------------------------------------------------
+    // Sets font size for debug draw manager
+    // ----------------------------------------------------------------------
+    void SetDebugFontSize(unsigned int size)
+    {
+        debug_font = size;
+    }
+
 };
 
 // ----------------------------------------------------------------------
@@ -210,21 +223,27 @@ public:
     // ----------------------------------------------------------------------
     xVirtualCamera * GetVirtualCamera();
 
+    // ----------------------------------------------------------------------
+    // Returns Engine's Debug Draw Manager
+    // ----------------------------------------------------------------------
+    xDebugDrawManager * GetDebugDrawManager();
+
 private:
 
     GLFWwindow * m_window;              // Application's window's descriptorxs
     bool m_loaded;                      // Is Engine loaded (created and ready to be use)
     bool m_active;                      // Is Application Window active
     bool m_isDone;                      // Is main loop should be closed
-    xVirtualCamera * m_camera;          //
-    xEngineSetup * m_setup;             // Pointer to Setup structure
-    xState * m_currentState;            // Current (active) state in manager
-    xInput * m_input;                   //
-    xSoundSystem * m_soundSystem;       //
-    xResourceManager<xScript> * m_scriptManager; //
-    xStateManager * m_stateManager;     //
-    xRenderSystem * m_renderSystem;     //
 
+    xVirtualCamera * m_camera;                      // Engine's camera
+    xEngineSetup * m_setup;                         // Pointer to Setup structure
+    xState * m_currentState;                        // Current (active) state in manager
+    xInput * m_input;                               // Input System
+    xSoundSystem * m_soundSystem;                   // Sound System
+    xResourceManager<xScript> * m_scriptManager;    // Script System
+    xStateManager * m_stateManager;                 // State Manager
+    xRenderSystem * m_renderSystem;                 // Rendering System
+    xDebugDrawManager * m_debugDraw;                // Debug Draw Manager (only for development)
 
 };
 
