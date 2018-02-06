@@ -1,0 +1,37 @@
+# it is one string comment for all line
+# which can be writen from any position of string
+
+# Variables types
+# bool - bool type (true or false)
+# float - floating point type (4 bytes)
+# string - string format (array of characters)
+# number - long format
+# vec2 - 2 component vector (vector's components have float type)
+# vec3 - 3 component vector (vector's components have float type)
+# vec4 - 4 component vector (vector's components have float type)
+# unknown - unknown type (will be saved as array of characters)
+
+# Operators
+# = - assignment operator
+
+# Block operators
+begin
+# Everything placed here will be scanned
+end
+# Everything outside will be ignored
+
+# Rules
+# <type> <name> = <value>
+# <type> <name> = <value1> <value2> ... <valueN>
+
+# Examples of usage
+begin
+bool is_shadowed = true
+float degree = 0.005
+string sound_name = "Sound1.wav"
+number index = 1123
+vec2 texcoord = 0.0 0.0
+vec3 position = 14.3 455.3 0.67
+vec4 color = 0.76 0.98 0.32 0.88
+unknown data = HAMS-JWNJ-JBBS-ACSW
+end
