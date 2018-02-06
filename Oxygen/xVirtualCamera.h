@@ -8,6 +8,11 @@
  *  game camera. It has simple and useful
  *  methods for control such as move, rotate,
  *  set position, set orientation and etc.
+ *
+ *  Included functions:
+ *  1. Frustum Culling
+ *  2. Occlusion Culling
+ *  3. Glare Diaphragm Effect
  */
 
 #ifndef OXYGEN_XVIRTUALCAMERA_H
@@ -245,114 +250,98 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Calculates current frustum pyramid (6 planes) and
+    // updates view port, model view and projection matrices
     // ----------------------------------------------------------------------
     virtual void UpdateFrustumPyramid()
     {
-        GLfloat  clip[16];
-        GLfloat  projection[16];
-        GLfloat  model[16];
-        GLfloat  t;
+        GLdouble clip[16];
+        GLfloat t;
 
-        // Взять текущую матрицу проекции
-        glGetFloatv( GL_PROJECTION_MATRIX, projection );
+        glGetIntegerv(GL_VIEWPORT, m_viewport);
+        glGetDoublev(GL_PROJECTION_MATRIX, m_projection);
+        glGetDoublev(GL_MODELVIEW_MATRIX, m_model);
 
-        // Взять текущую матрицу вида и модели
-        glGetFloatv( GL_MODELVIEW_MATRIX, model );
+        clip[ 0] = m_model[ 0] * m_projection[ 0] + m_model[ 1] * m_projection[ 4] + m_model[ 2] * m_projection[ 8] + m_model[ 3] * m_projection[12];
+        clip[ 1] = m_model[ 0] * m_projection[ 1] + m_model[ 1] * m_projection[ 5] + m_model[ 2] * m_projection[ 9] + m_model[ 3] * m_projection[13];
+        clip[ 2] = m_model[ 0] * m_projection[ 2] + m_model[ 1] * m_projection[ 6] + m_model[ 2] * m_projection[10] + m_model[ 3] * m_projection[14];
+        clip[ 3] = m_model[ 0] * m_projection[ 3] + m_model[ 1] * m_projection[ 7] + m_model[ 2] * m_projection[11] + m_model[ 3] * m_projection[15];
 
-        // Умножить две матрицы
-        clip[ 0] = model[ 0] * projection[ 0] + model[ 1] * projection[ 4] + model[ 2] * projection[ 8] + model[ 3] * projection[12];
-        clip[ 1] = model[ 0] * projection[ 1] + model[ 1] * projection[ 5] + model[ 2] * projection[ 9] + model[ 3] * projection[13];
-        clip[ 2] = model[ 0] * projection[ 2] + model[ 1] * projection[ 6] + model[ 2] * projection[10] + model[ 3] * projection[14];
-        clip[ 3] = model[ 0] * projection[ 3] + model[ 1] * projection[ 7] + model[ 2] * projection[11] + model[ 3] * projection[15];
+        clip[ 4] = m_model[ 4] * m_projection[ 0] + m_model[ 5] * m_projection[ 4] + m_model[ 6] * m_projection[ 8] + m_model[ 7] * m_projection[12];
+        clip[ 5] = m_model[ 4] * m_projection[ 1] + m_model[ 5] * m_projection[ 5] + m_model[ 6] * m_projection[ 9] + m_model[ 7] * m_projection[13];
+        clip[ 6] = m_model[ 4] * m_projection[ 2] + m_model[ 5] * m_projection[ 6] + m_model[ 6] * m_projection[10] + m_model[ 7] * m_projection[14];
+        clip[ 7] = m_model[ 4] * m_projection[ 3] + m_model[ 5] * m_projection[ 7] + m_model[ 6] * m_projection[11] + m_model[ 7] * m_projection[15];
 
-        clip[ 4] = model[ 4] * projection[ 0] + model[ 5] * projection[ 4] + model[ 6] * projection[ 8] + model[ 7] * projection[12];
-        clip[ 5] = model[ 4] * projection[ 1] + model[ 5] * projection[ 5] + model[ 6] * projection[ 9] + model[ 7] * projection[13];
-        clip[ 6] = model[ 4] * projection[ 2] + model[ 5] * projection[ 6] + model[ 6] * projection[10] + model[ 7] * projection[14];
-        clip[ 7] = model[ 4] * projection[ 3] + model[ 5] * projection[ 7] + model[ 6] * projection[11] + model[ 7] * projection[15];
+        clip[ 8] = m_model[ 8] * m_projection[ 0] + m_model[ 9] * m_projection[ 4] + m_model[10] * m_projection[ 8] + m_model[11] * m_projection[12];
+        clip[ 9] = m_model[ 8] * m_projection[ 1] + m_model[ 9] * m_projection[ 5] + m_model[10] * m_projection[ 9] + m_model[11] * m_projection[13];
+        clip[10] = m_model[ 8] * m_projection[ 2] + m_model[ 9] * m_projection[ 6] + m_model[10] * m_projection[10] + m_model[11] * m_projection[14];
+        clip[11] = m_model[ 8] * m_projection[ 3] + m_model[ 9] * m_projection[ 7] + m_model[10] * m_projection[11] + m_model[11] * m_projection[15];
 
-        clip[ 8] = model[ 8] * projection[ 0] + model[ 9] * projection[ 4] + model[10] * projection[ 8] + model[11] * projection[12];
-        clip[ 9] = model[ 8] * projection[ 1] + model[ 9] * projection[ 5] + model[10] * projection[ 9] + model[11] * projection[13];
-        clip[10] = model[ 8] * projection[ 2] + model[ 9] * projection[ 6] + model[10] * projection[10] + model[11] * projection[14];
-        clip[11] = model[ 8] * projection[ 3] + model[ 9] * projection[ 7] + model[10] * projection[11] + model[11] * projection[15];
+        clip[12] = m_model[12] * m_projection[ 0] + m_model[13] * m_projection[ 4] + m_model[14] * m_projection[ 8] + m_model[15] * m_projection[12];
+        clip[13] = m_model[12] * m_projection[ 1] + m_model[13] * m_projection[ 5] + m_model[14] * m_projection[ 9] + m_model[15] * m_projection[13];
+        clip[14] = m_model[12] * m_projection[ 2] + m_model[13] * m_projection[ 6] + m_model[14] * m_projection[10] + m_model[15] * m_projection[14];
+        clip[15] = m_model[12] * m_projection[ 3] + m_model[13] * m_projection[ 7] + m_model[14] * m_projection[11] + m_model[15] * m_projection[15];
 
-        clip[12] = model[12] * projection[ 0] + model[13] * projection[ 4] + model[14] * projection[ 8] + model[15] * projection[12];
-        clip[13] = model[12] * projection[ 1] + model[13] * projection[ 5] + model[14] * projection[ 9] + model[15] * projection[13];
-        clip[14] = model[12] * projection[ 2] + model[13] * projection[ 6] + model[14] * projection[10] + model[15] * projection[14];
-        clip[15] = model[12] * projection[ 3] + model[13] * projection[ 7] + model[14] * projection[11] + model[15] * projection[15];
-
-        // Извлечь правую плоскость
         m_Frustum[0][0] = clip[ 3] - clip[ 0];
         m_Frustum[0][1] = clip[ 7] - clip[ 4];
         m_Frustum[0][2] = clip[11] - clip[ 8];
         m_Frustum[0][3] = clip[15] - clip[12];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[0][0] * m_Frustum[0][0] + m_Frustum[0][1] * m_Frustum[0][1] + m_Frustum[0][2] * m_Frustum[0][2] ));
         m_Frustum[0][0] /= t;
         m_Frustum[0][1] /= t;
         m_Frustum[0][2] /= t;
         m_Frustum[0][3] /= t;
 
-        // Извлечь левую плоскость
         m_Frustum[1][0] = clip[ 3] + clip[ 0];
         m_Frustum[1][1] = clip[ 7] + clip[ 4];
         m_Frustum[1][2] = clip[11] + clip[ 8];
         m_Frustum[1][3] = clip[15] + clip[12];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[1][0] * m_Frustum[1][0] + m_Frustum[1][1] * m_Frustum[1][1] + m_Frustum[1][2] * m_Frustum[1][2] ));
         m_Frustum[1][0] /= t;
         m_Frustum[1][1] /= t;
         m_Frustum[1][2] /= t;
         m_Frustum[1][3] /= t;
 
-        // Извлечь нижнюю плоскость
         m_Frustum[2][0] = clip[ 3] + clip[ 1];
         m_Frustum[2][1] = clip[ 7] + clip[ 5];
         m_Frustum[2][2] = clip[11] + clip[ 9];
         m_Frustum[2][3] = clip[15] + clip[13];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[2][0] * m_Frustum[2][0] + m_Frustum[2][1] * m_Frustum[2][1] + m_Frustum[2][2] * m_Frustum[2][2] ));
         m_Frustum[2][0] /= t;
         m_Frustum[2][1] /= t;
         m_Frustum[2][2] /= t;
         m_Frustum[2][3] /= t;
 
-        // Извлечь верхнюю плоскость
         m_Frustum[3][0] = clip[ 3] - clip[ 1];
         m_Frustum[3][1] = clip[ 7] - clip[ 5];
         m_Frustum[3][2] = clip[11] - clip[ 9];
         m_Frustum[3][3] = clip[15] - clip[13];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[3][0] * m_Frustum[3][0] + m_Frustum[3][1] * m_Frustum[3][1] + m_Frustum[3][2] * m_Frustum[3][2] ));
         m_Frustum[3][0] /= t;
         m_Frustum[3][1] /= t;
         m_Frustum[3][2] /= t;
         m_Frustum[3][3] /= t;
 
-        // Извлечь дальнюю плоскость
         m_Frustum[4][0] = clip[ 3] - clip[ 2];
         m_Frustum[4][1] = clip[ 7] - clip[ 6];
         m_Frustum[4][2] = clip[11] - clip[10];
         m_Frustum[4][3] = clip[15] - clip[14];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[4][0] * m_Frustum[4][0] + m_Frustum[4][1] * m_Frustum[4][1] + m_Frustum[4][2] * m_Frustum[4][2] ));
         m_Frustum[4][0] /= t;
         m_Frustum[4][1] /= t;
         m_Frustum[4][2] /= t;
         m_Frustum[4][3] /= t;
 
-        // Извлечь ближнюю плоскость
         m_Frustum[5][0] = clip[ 3] + clip[ 2];
         m_Frustum[5][1] = clip[ 7] + clip[ 6];
         m_Frustum[5][2] = clip[11] + clip[10];
         m_Frustum[5][3] = clip[15] + clip[14];
 
-        // Нормализовать результат
         t = GLfloat(sqrt( m_Frustum[5][0] * m_Frustum[5][0] + m_Frustum[5][1] * m_Frustum[5][1] + m_Frustum[5][2] * m_Frustum[5][2] ));
         m_Frustum[5][0] /= t;
         m_Frustum[5][1] /= t;
@@ -361,15 +350,12 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Returns true if point in the frustum pyramid
     // ----------------------------------------------------------------------
     virtual bool IsPointInFrustumPyramid(xVector3 * point)
     {
         int i;
-        // Идея этого алгоритма в том, что если точка
-        // внутри всех 6 отсекающих плоскостей,
-        // тогда она внутри пирамиды видимости,
-        // и тогда функция вернет True.
+
         for(i = 0; i < 6; i++)
         {
             if(m_Frustum[i][0] * point->x + m_Frustum[i][1] * point->y + m_Frustum[i][2] * point->z + m_Frustum[i][3] <= 0)
@@ -381,29 +367,19 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Returns true if point occluded (is not visible on screen)
     // ----------------------------------------------------------------------
     virtual bool IsPointOccluded(xVector3 * point)
     {
-        GLint viewport[4]; // Место для данных окна просмотра
-        GLdouble mvmatrix[16], projmatrix[16]; // Место для матрицы трансформации
-        GLdouble winx, winy, winz; // Место для координат проекции
-        GLdouble flareZ; // Z-координата
-        GLfloat bufferZ; // Глубина
+        GLdouble winx, winy, winz;
+        GLdouble flareZ;
+        GLfloat bufferZ;
 
-        glGetIntegerv (GL_VIEWPORT, viewport); // Извлечь текущее окно просмотра
-        glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix); // Извлечь текущую матрицу просмотра
-        glGetDoublev (GL_PROJECTION_MATRIX, projmatrix); // Извлечь матрицу проекции
-
-        // Определим 2D позиции 3D точки
-        gluProject(point->x, point->y, point->z, mvmatrix, projmatrix, viewport, &winx, &winy, &winz);
+        gluProject(point->x, point->y, point->z, m_model, m_projection, m_viewport, &winx, &winy, &winz);
         flareZ = winz;
 
-        // Прочитаем один пиксель из буфера глубины (точно там, где наш блик будет нарисован)
         glReadPixels(winx, winy,1,1,GL_DEPTH_COMPONENT, GL_FLOAT, &bufferZ);
 
-        // Если текущая z-координата пикселя там, где будет блик меньше, чем
-        // z-координата точки p, то перед бликом что-то есть.
         if (bufferZ < flareZ) {
             return true;
         } else {
@@ -412,36 +388,27 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Returns true if full sphere in frustum
     // ----------------------------------------------------------------------
     virtual bool IsSphereInFrustum(xVector3 * point, float radius)
     {
-        // Проходим через все стороны пирамиды
         for(int i = 0; i < 6; i++ )
         {
-            // Если центр сферы дальше от плоскости, чем её радиус
             if( m_Frustum[i][0] * point->x + m_Frustum[i][1] * point->y + m_Frustum[i][2] * point->z +
                 m_Frustum[i][3] <= -radius )
             {
-                // То и вся сфера снаружи, возвращаем false
                 return false;
             }
         }
 
-        // Иначе сфера внутри
         return true;
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Returns true if full cube in frustum
     // ----------------------------------------------------------------------
     virtual bool IsCubeInFrustum(xVector3 * point, float size )
     {
-        // Тут работы немного больше, но тоже не слишком много.
-        // Нам передаётся центр куба и половина его длинны. Думайте о длинне так же,
-        // как о радиусе для сферы. Мы проверяем каждую точку куба на нахождение внутри
-        // пирамиды. Если точка находится перед стороной, переходим к следующей сторону.
-
         for(int i = 0; i < 6; i++ )
         {
             if(m_Frustum[i][0] * (point->x - size) + m_Frustum[i][1] * (point->y - size) +
@@ -469,7 +436,6 @@ public:
                m_Frustum[i][2] * (point->z + size) + m_Frustum[i][3] > 0)
                 continue;
 
-            // Если мы дошли досюда, куб не внутри пирамиды.
             return false;
         }
 
@@ -477,207 +443,161 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Renders glare effect for light (with check of occlusion and frustum)
     // ----------------------------------------------------------------------
     virtual void RenderGlareEffect(xLight * light)
     {
-        GLfloat Length = 0.0f;
-        xArray4 * pos = light->GetPosition();
-        xVector3 m_LightSourcePos;
-        m_LightSourcePos.Set(pos->values[0], pos->values[1], pos->values[2]);
+        // Note: screen coordinates
+        // ox: left 0 -> m_width right
+        // oy: down 0 -> m_height up
+        // Steps:
+        // calculate light position in screen coordinates
+        // calculate direction vector from light to center of screen
+        // set orthographic projection
+        // draw effects of camera
 
-        // Нарисовать блик, если источник света на одной линии обзора
-        if (!IsPointOccluded(&m_LightSourcePos))
+        GLfloat Length = 0;
+        xArray4 * pos = light->GetPosition();
+        xVector3 LightSourcePos;
+        LightSourcePos.Set(pos->values[0], pos->values[1], pos->values[2]);
+
+        // Draw Glare Effect if light in frustum and it is not occluded
+        if (IsPointInFrustumPyramid(&LightSourcePos) && !IsPointOccluded(&LightSourcePos))
         {
-            // Вектор между камерой и источником света
-            xVector3 vLightSourceToCamera;
-            vLightSourceToCamera.Set(m_position);
-            vLightSourceToCamera.Diff(&m_LightSourcePos);
-            // Длина
-            Length = vLightSourceToCamera.Module();
-            // Найдем точку на векторе направления камеры
-            xVector3 ptIntersect;
-            ptIntersect.Set(m_direction);
-            ptIntersect.MultScalar(Length);
-            // Найдем действительные координаты точки на вектор направления камеры
-            ptIntersect.Sum(m_position);
-            // Вычислим вектор, между источником света и точкой пересечения
-            xVector3 vLightSourceToIntersect;
-            vLightSourceToIntersect.Set(&ptIntersect);
+            double x,y,z;
+            gluProject(pos->values[0], pos->values[1], pos->values[2], m_model, m_projection, m_viewport, &x, &y, &z);
+            xVector2 m_LightSourcePos;
+            m_LightSourcePos.Set((float)x, (float)y);
+            xVector2 vLightSourceToIntersect(m_width/2.0, m_height/2.0);
             vLightSourceToIntersect.Diff(&m_LightSourcePos);
-            Length = vLightSourceToIntersect.Module(); // Длина
-            vLightSourceToIntersect.Normalize(); // Нормализуем вектор
 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_TEXTURE_2D);
 
-            // нарисовать большое неясное световое пятно
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            glOrtho(0.0, m_width, 0.0, m_height, -1.0, 1.0);
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+
+            float scale = 57;
+            float trans = 1.4;
+
             RenderBigGlow(light->m_bih_glow_color->values[0],
                           light->m_bih_glow_color->values[1],
                           light->m_bih_glow_color->values[2],
                           light->m_bih_glow_color->values[3],
                           m_LightSourcePos,
-                          16.0f * light->m_big_glow_scale);
-            // Полосы
+                          320.0f * light->m_big_glow_scale);
+
             RenderStreaks(light->m_streaks_color->values[0],
                           light->m_streaks_color->values[1],
                           light->m_streaks_color->values[2],
                           light->m_streaks_color->values[3],
                           m_LightSourcePos,
-                          16.0f * light->m_streaks_scale);
-            // маленькое пятно
+                          320.0f * light->m_streaks_scale);
+
             RenderGlow(light->m_glow_color->values[0],
                        light->m_glow_color->values[1],
                        light->m_glow_color->values[2],
                        light->m_glow_color->values[3],
                        m_LightSourcePos,
-                       3.5f * light->m_glow_scale);
+                       70.0f * light->m_glow_scale);
 
-            xVector3 pt;
-
-            // Точка на 15% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.1f);
-            //pt += m_LightSourcePos;
+            xVector2 pt;
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.1);
+            pt.MultScalar(0.1);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.9f, 0.6f, 0.4f, 0.5f, pt, 0.6f);
-
-            // Точка на 30% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.15f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.9f, 0.6f, 0.4f, 0.5f, pt, scale * 6.0f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.15);
+            pt.MultScalar(-0.064);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.8f, 0.5f, 0.6f, 0.5f, pt, 1.7f);
-
-            // Точка на 35% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.175f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.3f, 0.8f, 0.6f, 0.5f, pt, scale * 1.1f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.175);
+            pt.MultScalar(0.0);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.9f, 0.2f, 0.1f, 0.5f, pt, 0.83f);
-
-            // Точка на 57% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.285f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.8f, 0.5f, 0.6f, 0.5f, pt, scale * 1.7f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.285);
+            pt.MultScalar(trans * 0.175);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.7f, 0.7f, 0.4f, 0.5f, pt, 1.6f);
-
-            // Точка на 55.1% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.2755f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.9f, 0.2f, 0.1f, 0.5f, pt, scale * 0.83f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.2755);
+            pt.MultScalar(trans * 0.285);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.9f, 0.9f, 0.2f, 0.5f, pt, 0.8f);
-
-            // Точка на 95.5% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.4775f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.7f, 0.7f, 0.4f, 0.5f, pt, scale * 1.6f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.4775);
+            pt.MultScalar(trans * 0.2755);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.93f, 0.82f, 0.73f, 0.5f, pt, 1.0f);
-
-            // Точка на 98% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.49f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.9f, 0.9f, 0.2f, 0.5f, pt, scale * 0.8f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.49);
+            pt.MultScalar(trans * 0.4775);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.7f, 0.6f, 0.5f, 0.5f, pt, 1.4f);
-
-            // Точка на 130% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.65f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.93f, 0.82f, 0.73f, 0.5f, pt, scale * 1.0f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.65);
+            pt.MultScalar(trans * 0.49);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.7f, 0.8f, 0.3f, 0.5f, pt, 1.8f);
-
-            // Точка на 126% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.63f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.7f, 0.6f, 0.5f, 0.5f, pt, scale * 1.4f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.63);
+            pt.MultScalar(trans * 0.65);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.4f, 0.3f, 0.2f, 0.5f, pt, 1.4f);
-
-            // Точка на 160% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.8f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.7f, 0.8f, 0.3f, 0.5f, pt, scale * 1.8f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.8);
+            pt.MultScalar(trans * 0.63);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.7f, 0.5f, 0.5f, 0.5f, pt, 3.1f);
-
-            // Точка на 156.5% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.7825f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.4f, 0.3f, 0.2f, 0.5f, pt, scale *  1.4f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.7825);
+            pt.MultScalar(trans * 0.8);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.8f, 0.5f, 0.1f, 0.5f, pt, 2.6f);
-
-            //pt = vLightSourceToIntersect * (Length * 1.0f);
-            //pt += m_LightSourcePos;
+            RenderHalo(0.7f, 0.5f, 0.5f, 0.5f, pt, scale * 3.1f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 1.0);
+            pt.MultScalar(trans * 0.7825);
             pt.Sum(&m_LightSourcePos);
 
-            // Ореол
-            RenderHalo(0.5f, 0.5f, 0.7f, 0.5f, pt, 4.5f);
-
-            // Точка на 195% дальше от источника света по направлению к точке пересечения
-            //pt = vLightSourceToIntersect * (Length * 0.975f);
-            //pt += m_LightSourcePos;
+            RenderGlow(0.8f, 0.5f, 0.1f, 0.5f, pt, scale * 2.6f);
 
             pt.Set(&vLightSourceToIntersect);
-            pt.MultScalar(Length * 0.975);
+            pt.MultScalar(trans * 1.0);
             pt.Sum(&m_LightSourcePos);
 
-            // Маленькое пятно
-            RenderGlow(0.4f, 0.1f, 0.9f, 0.5f, pt, 2.0f);
+            RenderHalo(0.5f, 0.5f, 0.7f, 0.5f, pt, scale * 4.5f);
+
+            pt.Set(&vLightSourceToIntersect);
+            pt.MultScalar(trans * 0.975);
+            pt.Sum(&m_LightSourcePos);
+
+            RenderGlow(0.4f, 0.1f, 0.9f, 0.5f, pt, scale * 2.0f);
+
+            glPopMatrix();
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+            glMatrixMode(GL_MODELVIEW);
 
             glDisable(GL_BLEND );
             glEnable(GL_DEPTH_TEST);
@@ -686,33 +606,24 @@ public:
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Renders Halo using color, position and scale
     // ----------------------------------------------------------------------
-    virtual void RenderHalo(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector3 p, GLfloat scale)
+    virtual void RenderHalo(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector2 p, GLfloat scale)
     {
         xVector2 q[4];
 
-        // По существу мы делаем 2D прямоугольник из 4 точек
-        // при этом мы не нуждаемся в z-координате, поскольку
-        // мы инверсно вращаем камеру, поэтому
-        // текстурированный прямоугольник будет всегда обращен
-        // на зрителя.
-        q[0].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[0].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[1].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[1].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
-        q[2].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[2].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[3].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[3].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
+        q[0].x = (p.x - scale);
+        q[0].y = (p.y - scale);
+        q[1].x = (p.x - scale);
+        q[1].y = (p.y + scale);
+        q[2].x = (p.x + scale);
+        q[2].y = (p.y - scale);
+        q[3].x = (p.x + scale);
+        q[3].y = (p.y + scale);
 
-        glPushMatrix(); // Сохранить матрицу вида модели
-        glTranslatef(p.x, p.y, p.z); // Сместить в точку
-        glRotatef(-m_yaw, 0.0f, 1.0f, 0.0f);
-        glRotatef(-m_pitch, 1.0f, 0.0f, 0.0f);
-        glBindTexture(GL_TEXTURE_2D, m_HaloTexture->GetTextureID()); // Привязать текстуру ореола
-        glColor4f(r, g, b, a); // Задать цвет, так как текстура в градациях серого
-        glBegin(GL_TRIANGLE_STRIP); // Нарисовать ореол
+        glBindTexture(GL_TEXTURE_2D, m_HaloTexture->GetTextureID());
+        glColor4f(r, g, b, a);
+        glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f);
             glVertex2f(q[0].x, q[0].y);
             glTexCoord2f(0.0f, 1.0f);
@@ -722,37 +633,27 @@ public:
             glTexCoord2f(1.0f, 1.0f);
             glVertex2f(q[3].x, q[3].y);
         glEnd();
-        glPopMatrix(); // Восстановить матрицу вида модели
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Renders Glow using color, position and scale
     // ----------------------------------------------------------------------
-    virtual void RenderGlow(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector3 p, GLfloat scale)
+    virtual void RenderGlow(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector2 p, GLfloat scale)
     {
         xVector2 q[4];
 
-        // По существу мы делаем 2D прямоугольник из 4 точек
-        // при этом мы не нуждаемся в z-координате, поскольку
-        // мы инверсно вращаем камеру, поэтому
-        // текстурированный прямоугольник будет всегда обращен
-        // на зрителя.
-        q[0].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[0].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[1].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[1].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
-        q[2].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[2].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[3].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[3].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
+        q[0].x = (p.x - scale);
+        q[0].y = (p.y - scale);
+        q[1].x = (p.x - scale);
+        q[1].y = (p.y + scale);
+        q[2].x = (p.x + scale);
+        q[2].y = (p.y - scale);
+        q[3].x = (p.x + scale);
+        q[3].y = (p.y + scale);
 
-        glPushMatrix(); // Сохранить матрицу вида модели
-        glTranslatef(p.x, p.y, p.z); // Сместить в точку
-        glRotatef(-m_yaw, 0.0f, 1.0f, 0.0f);
-        glRotatef(-m_pitch, 1.0f, 0.0f, 0.0f);
-        glBindTexture(GL_TEXTURE_2D, m_GlowTexture->GetTextureID()); // Привязать текстуру пятна
-        glColor4f(r, g, b, a); // Задать цвет, так как текстура в градациях серого
-        glBegin(GL_TRIANGLE_STRIP); // Нарисовать пятно
+        glBindTexture(GL_TEXTURE_2D, m_GlowTexture->GetTextureID());
+        glColor4f(r, g, b, a);
+        glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f);
             glVertex2f(q[0].x, q[0].y);
             glTexCoord2f(0.0f, 1.0f);
@@ -762,37 +663,27 @@ public:
             glTexCoord2f(1.0f, 1.0f);
             glVertex2f(q[3].x, q[3].y);
         glEnd();
-        glPopMatrix(); // Восстановить матрицу вида модели
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Renders Big Glow using color, position and scale
     // ----------------------------------------------------------------------
-    virtual void RenderBigGlow(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector3 p, GLfloat scale)
+    virtual void RenderBigGlow(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector2 p, GLfloat scale)
     {
         xVector2 q[4];
 
-        // По существу мы делаем 2D прямоугольник из 4 точек
-        // при этом мы не нуждаемся в z-координате, поскольку
-        // мы инверсно вращаем камеру, поэтому
-        // текстурированный прямоугольник будет всегда обращен
-        // на зрителя.
-        q[0].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[0].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[1].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[1].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
-        q[2].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[2].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[3].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[3].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
+        q[0].x = (p.x - scale);
+        q[0].y = (p.y - scale);
+        q[1].x = (p.x - scale);
+        q[1].y = (p.y + scale);
+        q[2].x = (p.x + scale);
+        q[2].y = (p.y - scale);
+        q[3].x = (p.x + scale);
+        q[3].y = (p.y + scale);
 
-        glPushMatrix(); // Сохранить матрицу вида модели
-        glTranslatef(p.x, p.y, p.z); // Сместить в точку
-        glRotatef(-m_yaw, 0.0f, 1.0f, 0.0f);
-        glRotatef(-m_pitch, 1.0f, 0.0f, 0.0f);
-        glBindTexture(GL_TEXTURE_2D, m_BigGlowTexture->GetTextureID()); // Привязать текстуру пятна
-        glColor4f(r, g, b, a); // Задать цвет, так как текстура в градациях серого
-        glBegin(GL_TRIANGLE_STRIP); // Нарисовать пятно
+        glBindTexture(GL_TEXTURE_2D, m_BigGlowTexture->GetTextureID());
+        glColor4f(r, g, b, a);
+        glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f);
             glVertex2f(q[0].x, q[0].y);
             glTexCoord2f(0.0f, 1.0f);
@@ -802,37 +693,27 @@ public:
             glTexCoord2f(1.0f, 1.0f);
             glVertex2f(q[3].x, q[3].y);
         glEnd();
-        glPopMatrix(); // Восстановить матрицу вида модели
     }
 
     // ----------------------------------------------------------------------
-    //
+    // Renders Streaks using color, position and scale
     // ----------------------------------------------------------------------
-    virtual void RenderStreaks(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector3 p, GLfloat scale)
+    virtual void RenderStreaks(GLfloat r, GLfloat g, GLfloat b, GLfloat a, xVector2 p, GLfloat scale)
     {
         xVector2 q[4];
 
-        // По существу мы делаем 2D прямоугольник из 4 точек
-        // при этом мы не нуждаемся в z-координате, поскольку
-        // мы инверсно вращаем камеру, поэтому
-        // текстурированный прямоугольник будет всегда обращен
-        // на зрителя.
-        q[0].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[0].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[1].x = (p.x - scale); // Задать x-координату минус масштаб относительно центральной точки.
-        q[1].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
-        q[2].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[2].y = (p.y - scale); // Задать y-координату минус масштаб относительно центральной точки.
-        q[3].x = (p.x + scale); // Задать x-координату плюс масштаб относительно центральной точки.
-        q[3].y = (p.y + scale); // Задать y-координату плюс масштаб относительно центральной точки.
+        q[0].x = (p.x - scale);
+        q[0].y = (p.y - scale);
+        q[1].x = (p.x - scale);
+        q[1].y = (p.y + scale);
+        q[2].x = (p.x + scale);
+        q[2].y = (p.y - scale);
+        q[3].x = (p.x + scale);
+        q[3].y = (p.y + scale);
 
-        glPushMatrix(); // Сохранить матрицу вида модели
-        glTranslatef(p.x, p.y, p.z); // Сместить в точку
-        glRotatef(-m_yaw, 0.0f, 1.0f, 0.0f);
-        glRotatef(-m_pitch, 1.0f, 0.0f, 0.0f);
-        glBindTexture(GL_TEXTURE_2D, m_StreaksTexture->GetTextureID()); // Привязать текстуру полос
-        glColor4f(r, g, b, a); // Задать цвет, так как текстура в градациях серого
-        glBegin(GL_TRIANGLE_STRIP); // Нарисовать полосы
+        glBindTexture(GL_TEXTURE_2D, m_StreaksTexture->GetTextureID());
+        glColor4f(r, g, b, a);
+        glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f);
             glVertex2f(q[0].x, q[0].y);
             glTexCoord2f(0.0f, 1.0f);
@@ -842,7 +723,6 @@ public:
             glTexCoord2f(1.0f, 1.0f);
             glVertex2f(q[3].x, q[3].y);
         glEnd();
-        glPopMatrix(); // Восстановить матрицу вида модели
     }
 
 protected:
@@ -859,11 +739,14 @@ protected:
     xVector3 * m_position;  // Camera's global position
     double m_elapsed;       // Time to apply position change in dependence of velocity and time
 
-    GLfloat m_Frustum[6][4];        //
-    xTexture * m_StreaksTexture;    //
-    xTexture * m_BigGlowTexture;    //
-    xTexture * m_GlowTexture;       //
-    xTexture * m_HaloTexture;       //
+    GLdouble m_Frustum[6][4];       // Current Frustum planes
+    GLdouble m_projection[16];      // Current projection matrix
+    GLdouble m_model[16];           // Current model view matrix
+    GLint m_viewport[4];            // Current viewport matrix
+    xTexture * m_StreaksTexture;    // Texture (camera effect)
+    xTexture * m_BigGlowTexture;    // Texture (camera effect)
+    xTexture * m_GlowTexture;       // Texture (camera effect)
+    xTexture * m_HaloTexture;       // Texture (camera effect)
 
 
 

@@ -55,7 +55,6 @@ xSoundSystem::~xSoundSystem()
     SAFE_DELETE(m_SoundSources);
     SAFE_DELETE(m_SoundManager);
 
-    alcSuspendContext(m_context);
     while(m_ContextList->Iterate()) {
         alcSuspendContext(m_ContextList->GetCurrent());
         alcDestroyContext(m_ContextList->GetCurrent());
@@ -93,6 +92,14 @@ void xSoundSystem::DeleteContext(ALCcontext * context)
 void xSoundSystem::SetContextCurrent(ALCcontext *context)
 {
     alcMakeContextCurrent(context);
+}
+
+void xSoundSystem::DeleteAllContexts()
+{
+    while(m_ContextList->Iterate()) {
+        alcSuspendContext(m_ContextList->GetCurrent());
+        alcDestroyContext(m_ContextList->GetCurrent());
+    }
 }
 
 void xSoundSystem::SetListenerPosition(xVector3 * position)
@@ -147,22 +154,34 @@ void xSoundSystem::SetListenerOrientation(float at_x, float at_y, float at_z, fl
 
 void xSoundSystem::PlayAllSources()
 {
-
+    m_SoundSources->Iterate(true);
+    while(m_SoundSources->Iterate()) {
+        m_SoundSources->GetCurrent()->Play();
+    }
 }
 
 void xSoundSystem::StopAllSources()
 {
-
+    m_SoundSources->Iterate(true);
+    while(m_SoundSources->Iterate()) {
+        m_SoundSources->GetCurrent()->Stop();
+    }
 }
 
 void xSoundSystem::PauseAllSources()
 {
-
+    m_SoundSources->Iterate(true);
+    while(m_SoundSources->Iterate()) {
+        m_SoundSources->GetCurrent()->Pause();
+    }
 }
 
 void xSoundSystem::RewindAllSources()
 {
-
+    m_SoundSources->Iterate(true);
+    while(m_SoundSources->Iterate()) {
+        m_SoundSources->GetCurrent()->Rewind();
+    }
 }
 
 void xSoundSystem::SuspendContext()

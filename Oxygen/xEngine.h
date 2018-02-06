@@ -82,8 +82,8 @@ struct xEngineSetup
     bool full_screen;               // Is it in full screen mode
     unsigned int debug_font;        // Font size for debug drawing manager
 
-    void (* StateSetup)();          //
-    xVirtualCamera * camera;        //
+    void (* StateSetup)();          // State Setup Function
+    xVirtualCamera * camera;        // Virtual Game Camera (can be redefined)
 
     // ----------------------------------------------------------------------
     // xEngineSetup constructor
