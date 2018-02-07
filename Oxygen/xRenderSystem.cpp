@@ -30,6 +30,13 @@ xRenderSystem::xRenderSystem(GLFWwindow * window, xVirtualCamera * camera)
 
     glShadeModel(GL_SMOOTH);
     glClearColor(0.0, 0.0, 0.0, 1.0);
+
+
+    char path[] = "Models/foot.obj";
+    g_LoadObj.ImportObj(&g_3DModel, path);         // Load our .Obj file into our model structure
+
+    char path2[] = "Models/cube.obj";
+    modelLoader.ImportObj(&model3d, path2);
 }
 
 xRenderSystem::~xRenderSystem()
@@ -65,63 +72,16 @@ void xRenderSystem::PrepareRendering2D()
     glLoadIdentity();
 }
 
-void xRenderSystem::FinishRendering3D()
-{
-
-}
-
-void xRenderSystem::FinishRendering2D()
-{
-
-}
-
 void xRenderSystem::Rendering3D()
 {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-/*
+
+    glColor3f(0.1,0.1,0.1);
     glEnable(GL_DEPTH_TEST);
-
-    glColor3f(0.99, 0.99, 0.99);
-    static float angle1 = 0.0;
-    static float angle2 = 0.0;
-
-    glPushMatrix();
-    glRotatef(angle1, 0.0, 1.0, 0.0);
-    glRotatef(angle2, 0.0, 0.0, 1.0);
-
-    angle1 += 0.1;
-    angle2 += 0.2;
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    glBegin(GL_TRIANGLES);
-
-    glVertex3f(0.0, 0.0, 1.0);
-    glVertex3f(-0.5, 0.0, -0.5);
-    glVertex3f(0.5, 0.0, -0.5);
-
-    glVertex3f(0.0, 0.0, 1.0);
-    glVertex3f(0.5, 0.0, -0.5);
-    glVertex3f(0.0, 1.0, 0.0);
-
-    glVertex3f(-0.5, 0.0, -0.5);
-    glVertex3f(0.0, 0.0, 1.0);
-    glVertex3f(0.0, 1.0, 0.0);
-
-    glVertex3f(0.5, 0.0, -0.5);
-    glVertex3f(-0.5, 0.0, -0.5);
-    glVertex3f(0.0, 1.0, 0.0);
-
-    glEnd();
-
-    glPopMatrix();
-    //glPushMatrix();
-    glTranslatef(0.0, -1.0, 0.0);
-
+    glTranslatef(0.0, -4.0, 0.0);
     glBegin(GL_QUADS);
-
     for(int i = -100; i < 100; i++) {
         for(int j = -100; j < 100; j++) {
             glVertex3i(i, 0.0, j);
@@ -130,13 +90,43 @@ void xRenderSystem::Rendering3D()
             glVertex3i(i+1, 0.0, j);
         }
     }
-
     glEnd();
+    glTranslatef(0.0, 4.0, 0.0);
 
+    m_camera->UpdateFrustumPyramid();
+
+    glEnable(GL_LIGHTING);                              // Turn on lighting
+    glEnable(GL_LIGHT0);                                // Turn on a light with defaults set
+    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+
+    xLight * light = m_lights->GetFirst();
+    light->SetLightIndex(GL_LIGHT0);
+    light->ApplySettingToRenderer();
+
+    float amb[] = {0.0,0.0,0.0};
+    glLightModelfv(GL_AMBIENT, amb);
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+    glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+
+    static float rotation = 0;
+    glRotatef(rotation, 1,1,1);
+    rotation+= 1;
+
+    float diff[] = {1,1,1,1};
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
+
+    char name[] = "bone.bmp";
+    char path[] = "Models/";
+
+    glColor3f(1.,1.,1.);
+    model3d.Render();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_LIGHT0);                                // Turn on a light with defaults set
+    glDisable(GL_LIGHTING);                              // Turn on lighting
     glDisable(GL_DEPTH_TEST);
 
-*/
-    m_camera->UpdateFrustumPyramid();
     m_lights->Iterate(true);
     while (m_lights->Iterate()) {
         xLight * light = m_lights->GetCurrent();
@@ -144,7 +134,6 @@ void xRenderSystem::Rendering3D()
             m_camera->RenderGlareEffect(light);
         }
     }
-
 }
 
 void xRenderSystem::Rendering2D()

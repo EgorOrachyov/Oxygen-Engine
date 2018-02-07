@@ -261,13 +261,11 @@ void xEngine::RunMainLoop()
             // Separately do 3d rendering
             m_renderSystem->PrepareRendering3D();
             m_renderSystem->Rendering3D();
-            m_renderSystem->FinishRendering3D();
 
             // Separately do 2d rendering
             m_renderSystem->PrepareRendering2D();
             m_renderSystem->Rendering2D();
             m_debugDraw->Update();
-            m_renderSystem->FinishRendering2D();
             redering_t = glfwGetTime() - redering_t;
 
             // Continue loop or render scene, if current

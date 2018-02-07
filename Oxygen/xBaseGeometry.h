@@ -24,7 +24,8 @@
 // Base structures for 3d data
 // ----------------------------------------------------------------------
 
-struct xVector2 {
+struct xVector2
+{
 public:
     float x, y;
 
@@ -74,7 +75,8 @@ public:
     }
 };
 
-struct xVector3 {
+struct xVector3
+{
 public:
     float x, y, z;
 
@@ -131,7 +133,8 @@ public:
     }
 };
 
-struct xVector4 {
+struct xVector4
+{
 public:
     float x, y, z, w;
 
@@ -199,49 +202,46 @@ public:
 // Rendering structures
 // ----------------------------------------------------------------------
 
-struct xVertex {
+struct xPoint2
+{
 public:
-    unsigned long position;
-    unsigned long normal;
-    unsigned long texcoord;
+    float x, y;
 
-    // ----------------------------------------------------------------------
-    // Requires indexes of vectors of position (vector3), normal (vector3)
-    // and texture coordinates (vector2)
-    // ----------------------------------------------------------------------
-    xVertex(unsigned long position, unsigned long normal, unsigned long texcoord) {
-        this->position = position;
-        this->normal = normal;
-        this->texcoord = texcoord;
+    xPoint2(float x, float y) {
+        this->x = x;
+        this->y = y;
     }
 };
 
-struct xEdge {
+struct xPoint3
+{
 public:
-    unsigned long v1, v2;
+    float x, y, z;
 
-    // ----------------------------------------------------------------------
-    // Requires indexes of the first and the second vertexes
-    // ----------------------------------------------------------------------
-    xEdge(unsigned long vertex1, unsigned long vertex2) {
-        v1 = vertex1;
-        v2 = vertex2;
+    xPoint3(float x, float y, float z) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
     }
 };
 
-struct xPolygon {
+struct xEdge
+{
 public:
-    unsigned long v1, v2, v3;
+    long v1, v2;
+};
 
-    // ----------------------------------------------------------------------
-    // Requires indexes of the first, second and third vertexes
-    // Warning: vertexes will be rendered in the counter clock-wise order
-    // ----------------------------------------------------------------------
-    xPolygon(unsigned long vertex1, unsigned long vertex2, unsigned long vertex3) {
-        v1 = vertex1;
-        v2 = vertex2;
-        v3 = vertex3;
-    }
+// ----------------------------------------------------------------------
+// Face structure with ids of vertexes, texture coordinates, normals
+// (It should be used with objects and theirs own arrays of
+// xVertex3 and xVertex2 for data)
+// ----------------------------------------------------------------------
+struct xFace
+{
+public:
+    long vertex[3];
+    long texture[3];
+    long normal[3];
 };
 
 // ----------------------------------------------------------------------

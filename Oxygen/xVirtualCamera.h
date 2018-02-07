@@ -473,7 +473,6 @@ public:
 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glDisable(GL_DEPTH_TEST);
             glEnable(GL_TEXTURE_2D);
 
             glMatrixMode(GL_PROJECTION);
@@ -600,7 +599,6 @@ public:
             glMatrixMode(GL_MODELVIEW);
 
             glDisable(GL_BLEND );
-            glEnable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
         }
     }

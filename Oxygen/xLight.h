@@ -47,8 +47,8 @@ public:
 
         m_spot_exponent = 10.0;
         m_const_attenuation = 1.0;
-        m_linear_attenuation = 0.4;
-        m_quadratic_attenuation = 0.01;
+        m_linear_attenuation = 0.0;
+        m_quadratic_attenuation = 0.0;
 
         is_glare_effected = false;
         m_glow_scale = 1.0;
@@ -220,10 +220,10 @@ public:
             {   // Only for spot light
                 glLightfv(m_index, GL_SPOT_DIRECTION, m_direction->values);
                 glLightfv(m_index, GL_SPOT_CUTOFF, &m_spot_cutoff);
+                glLightf(m_index, GL_SPOT_EXPONENT, m_spot_exponent);
             }
             else if (m_type == LIGHT_TYPE_DIRECTED)
             {   // Only for direct light
-                glLightf(m_index, GL_SPOT_EXPONENT, m_spot_exponent);
             }
         }
     }

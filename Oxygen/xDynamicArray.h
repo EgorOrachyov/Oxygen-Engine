@@ -80,9 +80,9 @@ public:
     // Deletes the element with that index from the array (if it exist) and
     // moves all the elements from right to the left on 1 position
     // ----------------------------------------------------------------------
-    void Remove(unsigned long index)
+    void Remove(long index)
     {
-        if (index >= m_numOfElements)
+        if (index >= m_numOfElements || index < 0)
         {
             return;
         }
@@ -90,7 +90,7 @@ public:
         {
             SAFE_DELETE(m_array[index]);
 
-            for(unsigned long i = index; i < m_numOfElements - 1; i += 1)
+            for(long i = index; i < m_numOfElements - 1; i += 1)
             {
                 m_array[i] = m_array[i + 1];
             }
@@ -106,7 +106,7 @@ public:
     void EmptyMass()
     {
         if (m_numOfElements > 0) {
-            for(unsigned long i = 0; i < m_numOfElements; i += 1) {
+            for(long i = 0; i < m_numOfElements; i += 1) {
                 SAFE_DELETE(m_array[i]);
             }
             SAFE_DELETE_ARRAY(m_array);
@@ -118,11 +118,25 @@ public:
     }
 
     // ----------------------------------------------------------------------
+    // Clear mass, do not delete data of the elements (clear pointers)
+    // ----------------------------------------------------------------------
+    void Clear()
+    {
+        if (m_numOfElements > 0) {
+            SAFE_DELETE(m_array);
+
+            m_size = 0;
+            m_numOfElements = 0;
+            m_array = NULL;
+        }
+    }
+
+    // ----------------------------------------------------------------------
     // Returns the element by its index (if it exists) or NULL
     // ----------------------------------------------------------------------
-    Type * GetElement(unsigned long index)
+    Type * GetElement(long index)
     {
-        if (index >= m_numOfElements) {
+        if (index >= m_numOfElements || index < 0) {
             return NULL;
         } else {
             return m_array[index];
@@ -132,7 +146,7 @@ public:
     // ----------------------------------------------------------------------
     // Returns current allocated memory (in bytes) for the array
     // ----------------------------------------------------------------------
-    unsigned long GetSize()
+    long GetSize()
     {
         return m_size;
     }
@@ -140,7 +154,7 @@ public:
     // ----------------------------------------------------------------------
     // Returns number of elements in the array (real size)
     // ----------------------------------------------------------------------
-    unsigned long GetNumOfElements()
+    long GetNumOfElements()
     {
         return m_numOfElements;
     }
@@ -155,8 +169,8 @@ public:
 
 private:
     Type ** m_array;                    // Dynamic array with
-    unsigned long m_size;               // Max size of array
-    unsigned long m_numOfElements;      // Number of elements in the array
+    long m_size;               // Max size of array
+    long m_numOfElements;      // Number of elements in the array
 
 };
 

@@ -14,6 +14,14 @@ xFont::xFont(char * ttf, unsigned int FSize, unsigned int FDepth)
 {
     m_color = new xVector4(1.0, 1.0, 1.0, 1.0);
 
+    FILE * file = fopen(ttf, "r");
+    if (file == NULL) {
+        printf("ERROR: Cannot find/open Font %s \n", ttf);
+        exit(1);
+    } else {
+        fclose(file);
+    }
+
     m_Font = new FTGLBitmapFont(ttf);
     if ( m_Font == NULL) {
         printf("ERROR: Cannot create new Font %s \n", ttf);
@@ -46,13 +54,11 @@ void xFont::Print(float x, float y, const wchar_t *text)
 {
     glPushMatrix();
     glLoadIdentity();
-    glDisable(GL_TEXTURE_2D);
     glTranslatef(x,y,-1);
 
     glColor4f(m_color->x, m_color->y, m_color->z, m_color->w);
     glRasterPos2f(-1,0.5);
     m_Font->Render(text);
 
-    glEnable(GL_TEXTURE_2D);
     glPopMatrix();
 }

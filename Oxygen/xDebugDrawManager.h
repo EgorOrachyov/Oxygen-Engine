@@ -141,13 +141,11 @@ public:
     // ----------------------------------------------------------------------
     void Update()
     {
-        glDisable(GL_DEPTH_TEST);
         m_lines->Iterate(true);
         while(m_lines->Iterate()) {
             xLine * line = m_lines->GetCurrent();
             m_font->Print(line->m_x, line->m_y, line->m_text);
         }
-        glEnable(GL_DEPTH_TEST);
     }
 
     // ----------------------------------------------------------------------
